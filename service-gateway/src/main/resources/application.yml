@@ -1,0 +1,39 @@
+
+server:
+  port: 8081
+spring:
+  application:
+    name: service-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+      routes:
+      - id: service-hi
+        uri: lb://SERVICE-HI
+        predicates:
+          - Path=/demo/**
+        filters:
+          - StripPrefix=1
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+
+
+#http://localhost:8081/service-hi/hi?name=1323
+#spring.cloud.gateway.discovery.locator.enabled为true，表明gateway开启服务注册和发现的功能，
+#并且spring cloud gateway自动根据服务发现为每一个服务创建了一个router，
+#这个router将以服务名开头的请求路径转发到对应的服务。spring.cloud.gateway.discovery.locator.lowerCaseServiceId
+#是将请求路径上的服务名配置为小写（因为服务注册的时候，向注册中心注册时将服务名转成大写的了），
+#比如以/service-hi/*的请求路径被路由转发到服务名为service-hi的服务上。
+
+
+#http://localhost:8081/demo/hi?name=1323
+#配置了一个Path 的predict,将以/demo/**开头的请求都会转发到uri为lb://SERVICE-HI的地址上，
+#lb://SERVICE-HI即service-hi服务的负载均衡地址，并用StripPrefix的filter 在转发之前将/demo去掉。
+#同时将spring.cloud.gateway.discovery.locator.enabled改为false，
+#如果不改的话，之前的localhost:8081/service-hi/hi?name=1323这样的请求地址也能正常访问，因为这时为每个服务创建了2个router。
